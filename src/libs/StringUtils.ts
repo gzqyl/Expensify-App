@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import CONST from '@src/CONST';
+import { Platform } from 'react-native';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -63,4 +64,36 @@ function removeInvisibleCharacters(value: string): string {
     return result.trim();
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters};
+/**
+* Method used to escape the string with unicode replace space char and add '\u200D' concate special char to prevent unexpected line break.
+* @param {String} str - str to be escaped
+* @return {String}
+*
+*/
+function escapeSpecialCharWithUnicode(str: string): string {
+
+    if (Platform.OS == 'android') {
+        return _.map(str.split(''), (v,k) => {
+            if (k == 0) {
+                //the first char, should keep it as it is, unless it is a space char, '\u200D' just for keeping chars join together
+                if (/[\s]/.test(v)) {
+                    return '\u00A0';
+                }
+                return v;
+            }
+    
+            if (/[a-zA-Z\d]/.test(v)) {
+                return v;
+            } else if (/[\s]/.test(v)) {
+                return '\u00A0';
+            } else {
+                return `\u200D${v}`;
+            }
+        }).join('');
+    } else {
+        return str;
+    }
+    
+ }
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, escapeSpecialCharWithUnicode};
